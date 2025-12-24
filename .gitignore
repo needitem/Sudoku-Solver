@@ -1,3 +1,5 @@
 *.exe
 *.obj
 *.manifest
+*.ilk
+*.pdb

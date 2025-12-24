@@ -56,5 +56,21 @@ C++ Win32 네이티브 GUI 스도쿠 해결 프로그램입니다. 백트래킹 
 ## 빌드
 
 ```cmd
-cl /EHsc /O2 /utf-8 sudoku.cpp user32.lib gdi32.lib comctl32.lib /Fe:sudoku.exe
+build.bat
+```
+
+또는 수동으로:
+```cmd
+cl /EHsc /O2 /utf-8 /I src src\main.cpp src\gui.cpp src\solver.cpp src\strategies.cpp src\sudoku_grid.cpp user32.lib gdi32.lib comctl32.lib /Fe:sudoku.exe
+```
+
+## 프로젝트 구조
+
+```
+src/
+├── main.cpp          # 진입점
+├── gui.h/cpp         # Win32 GUI
+├── solver.h/cpp      # 솔버 메인 로직
+├── strategies.h/cpp  # 해결 전략들
+└── sudoku_grid.h/cpp # 그리드 데이터 구조
 ```
