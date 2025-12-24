@@ -1,5 +1,6 @@
 #include "strategies.h"
 #include <vector>
+#include <array>
 
 namespace Strategies {
 
@@ -696,6 +697,57 @@ bool yWing(SudokuGrid& grid) {
         }
     }
     return progress;
+}
+
+bool backtrack(SudokuGrid& grid) {
+    // 가장 후보가 적은 빈 셀 찾기
+    int minCand = 10, bestRow = -1, bestCol = -1;
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            if (grid.getValue(i, j) == 0) {
+                int count = SudokuGrid::countBits(grid.getCandidates(i, j));
+                if (count < minCand) {
+                    minCand = count;
+                    bestRow = i;
+                    bestCol = j;
+                }
+            }
+        }
+    }
+    
+    if (bestRow == -1) return true;
+    
+    int cand = grid.getCandidates(bestRow, bestCol);
+    if (cand == 0) return false;
+    
+    // 현재 상태 저장
+    std::array<std::array<int, 9>, 9> savedGrid;
+    std::array<std::array<int, 9>, 9> savedCandidates;
+    
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            savedGrid[i][j] = grid.getValue(i, j);
+            savedCandidates[i][j] = grid.getCandidates(i, j);
+        }
+    }
+    
+    for (int num = 1; num <= 9; num++) {
+        if (cand & (1 << (num - 1))) {
+            grid.setCell(bestRow, bestCol, num);
+            if (backtrack(grid)) return true;
+            
+            // 상태 복원
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    if (savedGrid[i][j] == 0 && grid.getValue(i, j) != 0) {
+                        grid.clearCell(i, j, grid.getValue(i, j));
+                    }
+                    grid.setCandidates(i, j, savedCandidates[i][j]);
+                }
+            }
+        }
+    }
+    return false;
 }
 
 } // namespace Strategies

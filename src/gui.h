@@ -13,7 +13,7 @@ class SudokuGUI {
 private:
     static SudokuSolver solver;
     static HWND cells[9][9];
-    static HWND hStatus, hSolveBtn, hClearBtn;
+    static HWND hStatus, hSolveBtn, hClearBtn, hBacktrackChk;
     static HFONT hFont;
     static HBRUSH hBrushWhite;
     

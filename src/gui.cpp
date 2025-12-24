@@ -6,11 +6,13 @@ HWND SudokuGUI::cells[9][9];
 HWND SudokuGUI::hStatus;
 HWND SudokuGUI::hSolveBtn;
 HWND SudokuGUI::hClearBtn;
+HWND SudokuGUI::hBacktrackChk;
 HFONT SudokuGUI::hFont;
 HBRUSH SudokuGUI::hBrushWhite;
 
 void SudokuGUI::SolvePuzzle(HWND hWnd) {
     solver.reset();
+    solver.setUseBacktrack(SendMessage(hBacktrackChk, BM_GETCHECK, 0, 0) == BST_CHECKED);
     
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 9; j++) {
@@ -125,9 +127,11 @@ LRESULT CALLBACK SudokuGUI::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
         int btnY = 60 + 9 * CELL_SIZE + 20;
         
         hSolveBtn = CreateWindow(L"BUTTON", L"해결", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-            MARGIN + 80, btnY, 100, 35, hWnd, (HMENU)1, NULL, NULL);
+            MARGIN + 30, btnY, 80, 35, hWnd, (HMENU)1, NULL, NULL);
         hClearBtn = CreateWindow(L"BUTTON", L"초기화", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-            MARGIN + 200, btnY, 100, 35, hWnd, (HMENU)2, NULL, NULL);
+            MARGIN + 120, btnY, 80, 35, hWnd, (HMENU)2, NULL, NULL);
+        hBacktrackChk = CreateWindow(L"BUTTON", L"백트래킹", WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
+            MARGIN + 220, btnY + 5, 100, 25, hWnd, (HMENU)3, NULL, NULL);
 
         hStatus = CreateWindow(L"STATIC", L"숫자를 입력하고 해결 버튼을 누르세요",
             WS_CHILD | WS_VISIBLE | SS_CENTER, MARGIN, btnY + 50, 9 * CELL_SIZE + 20, 25, hWnd, NULL, NULL, NULL);
@@ -136,6 +140,7 @@ LRESULT CALLBACK SudokuGUI::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
             OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, CLEARTYPE_QUALITY, DEFAULT_PITCH, L"맑은 고딕");
         SendMessage(hSolveBtn, WM_SETFONT, (WPARAM)hBtnFont, TRUE);
         SendMessage(hClearBtn, WM_SETFONT, (WPARAM)hBtnFont, TRUE);
+        SendMessage(hBacktrackChk, WM_SETFONT, (WPARAM)hBtnFont, TRUE);
         SendMessage(hStatus, WM_SETFONT, (WPARAM)hBtnFont, TRUE);
         break;
     }

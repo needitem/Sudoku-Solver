@@ -18,4 +18,7 @@ namespace Strategies {
     bool xWing(SudokuGrid& grid);
     bool swordfish(SudokuGrid& grid);
     bool yWing(SudokuGrid& grid);
+    
+    // 백트래킹
+    bool backtrack(SudokuGrid& grid);
 }

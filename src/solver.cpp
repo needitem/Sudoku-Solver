@@ -1,7 +1,7 @@
 #include "solver.h"
 #include "strategies.h"
 
-SudokuSolver::SudokuSolver() { reset(); }
+SudokuSolver::SudokuSolver() : useBacktrack(false) { reset(); }
 
 void SudokuSolver::reset() { grid.reset(); }
 
@@ -28,6 +28,11 @@ bool SudokuSolver::solve() {
         if (Strategies::xWing(grid)) { progress = true; continue; }
         if (Strategies::swordfish(grid)) { progress = true; continue; }
         if (Strategies::yWing(grid)) { progress = true; continue; }
+    }
+    
+    // 백트래킹 옵션
+    if (!grid.isComplete() && useBacktrack) {
+        return Strategies::backtrack(grid);
     }
     
     return grid.isComplete();
