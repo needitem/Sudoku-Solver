@@ -132,7 +132,7 @@ private:
         return progress;
     }
 
-    // === Naked Pairs/Triples ===
+    // === Naked Pairs ===
     bool nakedPairs() {
         bool progress = false;
         // 행에서 Naked Pairs
@@ -165,6 +165,320 @@ private:
                             if (r != r1 && r != r2 && grid[r][col] == 0) {
                                 if (candidates[r][col] & pair) {
                                     candidates[r][col] &= ~pair;
+                                    progress = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // 박스에서 Naked Pairs
+        for (int br = 0; br < 3; br++) {
+            for (int bc = 0; bc < 3; bc++) {
+                std::vector<std::pair<int, int>> cellsWithTwo;
+                for (int i = 0; i < 3; i++) {
+                    for (int j = 0; j < 3; j++) {
+                        int r = br * 3 + i, c = bc * 3 + j;
+                        if (grid[r][c] == 0 && countBits(candidates[r][c]) == 2) {
+                            cellsWithTwo.push_back({r, c});
+                        }
+                    }
+                }
+                for (size_t i = 0; i < cellsWithTwo.size(); i++) {
+                    for (size_t j = i + 1; j < cellsWithTwo.size(); j++) {
+                        int r1 = cellsWithTwo[i].first, c1 = cellsWithTwo[i].second;
+                        int r2 = cellsWithTwo[j].first, c2 = cellsWithTwo[j].second;
+                        if (candidates[r1][c1] == candidates[r2][c2]) {
+                            int pair = candidates[r1][c1];
+                            for (int ii = 0; ii < 3; ii++) {
+                                for (int jj = 0; jj < 3; jj++) {
+                                    int r = br * 3 + ii, c = bc * 3 + jj;
+                                    if ((r != r1 || c != c1) && (r != r2 || c != c2) && grid[r][c] == 0) {
+                                        if (candidates[r][c] & pair) {
+                                            candidates[r][c] &= ~pair;
+                                            progress = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return progress;
+    }
+
+    // === Naked Triples ===
+    bool nakedTriples() {
+        bool progress = false;
+        // 행에서 Naked Triples
+        for (int row = 0; row < 9; row++) {
+            std::vector<int> cellsIdx;
+            for (int c = 0; c < 9; c++) {
+                if (grid[row][c] == 0 && countBits(candidates[row][c]) >= 2 && countBits(candidates[row][c]) <= 3) {
+                    cellsIdx.push_back(c);
+                }
+            }
+            for (size_t i = 0; i < cellsIdx.size(); i++) {
+                for (size_t j = i + 1; j < cellsIdx.size(); j++) {
+                    for (size_t k = j + 1; k < cellsIdx.size(); k++) {
+                        int c1 = cellsIdx[i], c2 = cellsIdx[j], c3 = cellsIdx[k];
+                        int combined = candidates[row][c1] | candidates[row][c2] | candidates[row][c3];
+                        if (countBits(combined) == 3) {
+                            for (int c = 0; c < 9; c++) {
+                                if (c != c1 && c != c2 && c != c3 && grid[row][c] == 0) {
+                                    if (candidates[row][c] & combined) {
+                                        candidates[row][c] &= ~combined;
+                                        progress = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // 열에서 Naked Triples
+        for (int col = 0; col < 9; col++) {
+            std::vector<int> cellsIdx;
+            for (int r = 0; r < 9; r++) {
+                if (grid[r][col] == 0 && countBits(candidates[r][col]) >= 2 && countBits(candidates[r][col]) <= 3) {
+                    cellsIdx.push_back(r);
+                }
+            }
+            for (size_t i = 0; i < cellsIdx.size(); i++) {
+                for (size_t j = i + 1; j < cellsIdx.size(); j++) {
+                    for (size_t k = j + 1; k < cellsIdx.size(); k++) {
+                        int r1 = cellsIdx[i], r2 = cellsIdx[j], r3 = cellsIdx[k];
+                        int combined = candidates[r1][col] | candidates[r2][col] | candidates[r3][col];
+                        if (countBits(combined) == 3) {
+                            for (int r = 0; r < 9; r++) {
+                                if (r != r1 && r != r2 && r != r3 && grid[r][col] == 0) {
+                                    if (candidates[r][col] & combined) {
+                                        candidates[r][col] &= ~combined;
+                                        progress = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return progress;
+    }
+
+    // === Hidden Pairs ===
+    bool hiddenPairs() {
+        bool progress = false;
+        // 행에서 Hidden Pairs
+        for (int row = 0; row < 9; row++) {
+            for (int n1 = 1; n1 <= 8; n1++) {
+                int bit1 = 1 << (n1 - 1);
+                if (rowMask[row] & bit1) continue;
+                for (int n2 = n1 + 1; n2 <= 9; n2++) {
+                    int bit2 = 1 << (n2 - 1);
+                    if (rowMask[row] & bit2) continue;
+                    
+                    std::vector<int> positions;
+                    for (int c = 0; c < 9; c++) {
+                        if (grid[row][c] == 0 && ((candidates[row][c] & bit1) || (candidates[row][c] & bit2))) {
+                            if ((candidates[row][c] & bit1) && (candidates[row][c] & bit2)) {
+                                positions.push_back(c);
+                            } else if ((candidates[row][c] & bit1) || (candidates[row][c] & bit2)) {
+                                positions.clear();
+                                break;
+                            }
+                        }
+                    }
+                    if (positions.size() == 2) {
+                        int pair = bit1 | bit2;
+                        for (int c : positions) {
+                            if (candidates[row][c] != pair) {
+                                candidates[row][c] = pair;
+                                progress = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // 열에서 Hidden Pairs
+        for (int col = 0; col < 9; col++) {
+            for (int n1 = 1; n1 <= 8; n1++) {
+                int bit1 = 1 << (n1 - 1);
+                if (colMask[col] & bit1) continue;
+                for (int n2 = n1 + 1; n2 <= 9; n2++) {
+                    int bit2 = 1 << (n2 - 1);
+                    if (colMask[col] & bit2) continue;
+                    
+                    std::vector<int> positions;
+                    for (int r = 0; r < 9; r++) {
+                        if (grid[r][col] == 0 && ((candidates[r][col] & bit1) || (candidates[r][col] & bit2))) {
+                            if ((candidates[r][col] & bit1) && (candidates[r][col] & bit2)) {
+                                positions.push_back(r);
+                            } else if ((candidates[r][col] & bit1) || (candidates[r][col] & bit2)) {
+                                positions.clear();
+                                break;
+                            }
+                        }
+                    }
+                    if (positions.size() == 2) {
+                        int pair = bit1 | bit2;
+                        for (int r : positions) {
+                            if (candidates[r][col] != pair) {
+                                candidates[r][col] = pair;
+                                progress = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return progress;
+    }
+
+    // === Hidden Triples ===
+    bool hiddenTriples() {
+        bool progress = false;
+        // 행에서 Hidden Triples
+        for (int row = 0; row < 9; row++) {
+            for (int n1 = 1; n1 <= 7; n1++) {
+                int bit1 = 1 << (n1 - 1);
+                if (rowMask[row] & bit1) continue;
+                for (int n2 = n1 + 1; n2 <= 8; n2++) {
+                    int bit2 = 1 << (n2 - 1);
+                    if (rowMask[row] & bit2) continue;
+                    for (int n3 = n2 + 1; n3 <= 9; n3++) {
+                        int bit3 = 1 << (n3 - 1);
+                        if (rowMask[row] & bit3) continue;
+                        
+                        int triple = bit1 | bit2 | bit3;
+                        std::vector<int> positions;
+                        bool valid = true;
+                        
+                        for (int c = 0; c < 9 && valid; c++) {
+                            if (grid[row][c] == 0 && (candidates[row][c] & triple)) {
+                                positions.push_back(c);
+                                if (positions.size() > 3) valid = false;
+                            }
+                        }
+                        
+                        if (valid && positions.size() == 3) {
+                            for (int c : positions) {
+                                int newCand = candidates[row][c] & triple;
+                                if (candidates[row][c] != newCand) {
+                                    candidates[row][c] = newCand;
+                                    progress = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // 열에서 Hidden Triples
+        for (int col = 0; col < 9; col++) {
+            for (int n1 = 1; n1 <= 7; n1++) {
+                int bit1 = 1 << (n1 - 1);
+                if (colMask[col] & bit1) continue;
+                for (int n2 = n1 + 1; n2 <= 8; n2++) {
+                    int bit2 = 1 << (n2 - 1);
+                    if (colMask[col] & bit2) continue;
+                    for (int n3 = n2 + 1; n3 <= 9; n3++) {
+                        int bit3 = 1 << (n3 - 1);
+                        if (colMask[col] & bit3) continue;
+                        
+                        int triple = bit1 | bit2 | bit3;
+                        std::vector<int> positions;
+                        bool valid = true;
+                        
+                        for (int r = 0; r < 9 && valid; r++) {
+                            if (grid[r][col] == 0 && (candidates[r][col] & triple)) {
+                                positions.push_back(r);
+                                if (positions.size() > 3) valid = false;
+                            }
+                        }
+                        
+                        if (valid && positions.size() == 3) {
+                            for (int r : positions) {
+                                int newCand = candidates[r][col] & triple;
+                                if (candidates[r][col] != newCand) {
+                                    candidates[r][col] = newCand;
+                                    progress = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return progress;
+    }
+
+    // === Box-Line Reduction (역방향) ===
+    bool boxLineReduction() {
+        bool progress = false;
+        // 행에서 숫자가 한 박스에만 있으면 박스 내 다른 셀에서 제거
+        for (int row = 0; row < 9; row++) {
+            for (int num = 1; num <= 9; num++) {
+                int bit = 1 << (num - 1);
+                if (rowMask[row] & bit) continue;
+                
+                int boxFound = -1;
+                bool multiBox = false;
+                for (int c = 0; c < 9 && !multiBox; c++) {
+                    if (candidates[row][c] & bit) {
+                        int box = c / 3;
+                        if (boxFound == -1) boxFound = box;
+                        else if (boxFound != box) multiBox = true;
+                    }
+                }
+                
+                if (!multiBox && boxFound != -1) {
+                    int br = row / 3, bc = boxFound;
+                    for (int i = 0; i < 3; i++) {
+                        int r = br * 3 + i;
+                        if (r != row) {
+                            for (int j = 0; j < 3; j++) {
+                                int c = bc * 3 + j;
+                                if (candidates[r][c] & bit) {
+                                    candidates[r][c] &= ~bit;
+                                    progress = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // 열에서 숫자가 한 박스에만 있으면 박스 내 다른 셀에서 제거
+        for (int col = 0; col < 9; col++) {
+            for (int num = 1; num <= 9; num++) {
+                int bit = 1 << (num - 1);
+                if (colMask[col] & bit) continue;
+                
+                int boxFound = -1;
+                bool multiBox = false;
+                for (int r = 0; r < 9 && !multiBox; r++) {
+                    if (candidates[r][col] & bit) {
+                        int box = r / 3;
+                        if (boxFound == -1) boxFound = box;
+                        else if (boxFound != box) multiBox = true;
+                    }
+                }
+                
+                if (!multiBox && boxFound != -1) {
+                    int br = boxFound, bc = col / 3;
+                    for (int j = 0; j < 3; j++) {
+                        int c = bc * 3 + j;
+                        if (c != col) {
+                            for (int i = 0; i < 3; i++) {
+                                int r = br * 3 + i;
+                                if (candidates[r][c] & bit) {
+                                    candidates[r][c] &= ~bit;
                                     progress = true;
                                 }
                             }
@@ -522,7 +836,11 @@ public:
             
             // 중급 전략
             if (nakedPairs()) { progress = true; continue; }
+            if (nakedTriples()) { progress = true; continue; }
+            if (hiddenPairs()) { progress = true; continue; }
+            if (hiddenTriples()) { progress = true; continue; }
             if (pointingPairs()) { progress = true; continue; }
+            if (boxLineReduction()) { progress = true; continue; }
             
             // 고급 전략
             if (xWing()) { progress = true; continue; }
